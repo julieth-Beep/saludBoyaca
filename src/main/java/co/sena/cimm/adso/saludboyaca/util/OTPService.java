@@ -16,17 +16,17 @@ import javax.mail.internet.MimeMessage;
 public class OTPService {
 
     private static final String SMTP_HOST = "smtp.gmail.com";
-    private static final int SMTP_PORT = 587;
+    private static final int SMTP_PORT = 465;
 
-    private static final String EMAIL_REMIT =
-        System.getenv("EMAIL_USER") != null
-        ? System.getenv("EMAIL_USER")
-        : "pjulieth836@gmail.com";
+    private static final String EMAIL_REMIT
+            = System.getenv("EMAIL_USER") != null
+            ? System.getenv("EMAIL_USER")
+            : "pjulieth836@gmail.com";
 
-    private static final String EMAIL_PASS =
-        System.getenv("EMAIL_PASS") != null
-        ? System.getenv("EMAIL_PASS")
-        : "fmrk uwiu wwjl wvbi";
+    private static final String EMAIL_PASS
+            = System.getenv("EMAIL_PASS") != null
+            ? System.getenv("EMAIL_PASS")
+            : "fmrk uwiu wwjl wvbi";
 
     private static final int OTP_LONGITUD = 6;
 
@@ -40,14 +40,16 @@ public class OTPService {
     }
 
     public static void enviarOTP(String destinatario, String codigoOTP,
-                                  String asunto, String cuerpo)
+            String asunto, String cuerpo)
             throws MessagingException, UnsupportedEncodingException {
 
         Properties props = new Properties();
         props.put("mail.smtp.host", SMTP_HOST);
-        props.put("mail.smtp.port", SMTP_PORT);
+        props.put("mail.smtp.port", "465");
         props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.socketFactory.port", "465");
+        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        props.put("mail.smtp.socketFactory.fallback", "false");
 
         Session mailSession = Session.getInstance(props, new Authenticator() {
             @Override
