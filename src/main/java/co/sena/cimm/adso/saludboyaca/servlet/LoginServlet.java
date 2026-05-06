@@ -1,12 +1,10 @@
 package co.sena.cimm.adso.saludboyaca.servlet;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-import javax.mail.MessagingException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -67,7 +65,7 @@ public class LoginServlet extends HttpServlet {
             // ⑤ Enviar OTP por correo
             try {
                 OTPService.enviarOTP(usuario.getEmail(), otp, asunto, cuerpo);
-            } catch (MessagingException | UnsupportedEncodingException ex) {
+            } catch (Exception ex) {
                 System.err.println("Error enviando OTP: " + ex.getMessage());
             }
 
