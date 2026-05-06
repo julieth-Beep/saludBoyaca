@@ -1,33 +1,15 @@
 package co.sena.cimm.adso.saludboyaca.util;
 
-import java.io.UnsupportedEncodingException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.SecureRandom;
-import java.util.Properties;
-
-import javax.mail.Authenticator;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 public class OTPService {
 
-    private static final String SMTP_HOST = "smtp.gmail.com";
-    private static final int SMTP_PORT = 465;
+    private static final String BREVO_API_KEY = System.getenv("BREVO_API_KEY");
 
-    private static final String EMAIL_REMIT
-            = System.getenv("EMAIL_USER") != null
-            ? System.getenv("EMAIL_USER")
-            : "pjulieth836@gmail.com";
-
-    private static final String EMAIL_PASS
-            = System.getenv("EMAIL_PASS") != null
-            ? System.getenv("EMAIL_PASS")
-            : "fmrk uwiu wwjl wvbi";
-
+    private static final String EMAIL_REMIT = "pjulieth836@gmail.com";
     private static final int OTP_LONGITUD = 6;
 
     public static String generarOTP() {
@@ -40,30 +22,30 @@ public class OTPService {
     }
 
     public static void enviarOTP(String destinatario, String codigoOTP,
-            String asunto, String cuerpo)
-            throws MessagingException, UnsupportedEncodingException {
+                                  String asunto, String cuerpo) throws Exception {
 
-        Properties props = new Properties();
-        props.put("mail.smtp.host", SMTP_HOST);
-        props.put("mail.smtp.port", "465");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.socketFactory.port", "465");
-        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-        props.put("mail.smtp.socketFactory.fallback", "false");
+        URL url = new URL("https://api.brevo.com/v3/smtp/email");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("accept", "application/json");
+        conn.setRequestProperty("api-key", BREVO_API_KEY);
+        conn.setRequestProperty("content-type", "application/json");
+        conn.setDoOutput(true);
 
-        Session mailSession = Session.getInstance(props, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(EMAIL_REMIT, EMAIL_PASS);
-            }
-        });
+        String json = "{"
+            + "\"sender\":{\"name\":\"SaludBoyaca\",\"email\":\"" + EMAIL_REMIT + "\"},"
+            + "\"to\":[{\"email\":\"" + destinatario + "\"}],"
+            + "\"subject\":\"" + asunto + "\","
+            + "\"textContent\":\"" + cuerpo + "\""
+            + "}";
 
-        Message mensaje = new MimeMessage(mailSession);
-        // Se agrega el charset UTF-8 para evitar UnsupportedEncodingException
-        mensaje.setFrom(new InternetAddress(EMAIL_REMIT, "SaludBoyaca", "UTF-8"));
-        mensaje.setRecipient(Message.RecipientType.TO, new InternetAddress(destinatario));
-        mensaje.setSubject(asunto);
-        mensaje.setText(cuerpo);
-        Transport.send(mensaje);
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(json.getBytes("UTF-8"));
+        }
+
+        int responseCode = conn.getResponseCode();
+        if (responseCode != 201) {
+            throw new Exception("Error Brevo API: " + responseCode);
+        }
     }
 }
